@@ -17,6 +17,11 @@ public class Dao<T>(val database: SQLiteDatabase, val table: Table<T>) {
         return database.insertWithOnConflict(table.tableName, null, values, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
+    fun delete() {
+        
+    }
+
+
     fun getAll(): List<T> {
         val cursor = database.query(table.tableName, table.getColumnNames(), null, null, null, null, null)
         return getAll(cursor)
@@ -53,14 +58,24 @@ public class Dao<T>(val database: SQLiteDatabase, val table: Table<T>) {
             return this
         }
 
+        fun <K> lt(column: Column<K>, value: Any): QueryBuilder {
+            getWhereMap().put("${column.getColumnName()} < ?", value.toString())
+
+            return this
+        }
+
         fun <K> equals(column: Column<K>, value: Any): QueryBuilder {
-            if(whereMap == null) {
+            getWhereMap().put("${column.getColumnName()} = ?", value.toString())
+
+            return this
+        }
+
+        private fun getWhereMap(): MutableMap<String, String> {
+            if (whereMap == null) {
                 whereMap = HashMap()
             }
 
-            whereMap!!.put("${column.getColumnName()} = ?", value.toString())
-
-            return this
+            return whereMap!!
         }
 
         fun run(): List<T> {

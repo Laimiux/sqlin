@@ -1,7 +1,9 @@
 package com.laimiux.sqlin
 
-public abstract class Table<T>(val converter: DaoConverter<T>, val tableName: String) {
+public abstract class Table<T>(val tableName: String) {
     abstract val columns: Array<out Column<out Any>>
+
+    abstract val converter: DaoConverter<T>
 
     fun getColumnNames(): Array<String> {
         return columns.map({column -> column.getColumnName() }).copyToArray()
