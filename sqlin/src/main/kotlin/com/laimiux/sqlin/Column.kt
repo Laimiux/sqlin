@@ -10,7 +10,7 @@ public trait Column<T: Any> {
 
 
     public fun getValue(cursor: Cursor): T? {
-        val index = getColumnIndex(cursor)
+        val index = cursor.getColumnIndexOrThrow(this.getColumnName())
 
         // Make sure anything exists
         if(cursor.isNull(index)) {
@@ -20,11 +20,12 @@ public trait Column<T: Any> {
         return this.type.fromCursor(index, cursor)
     }
 
-    private fun getColumnIndex(cursor: Cursor): Int {
-        return cursor.getColumnIndexOrThrow(this.getColumnName())
-    }
-
     public fun putValue(values: ContentValues, value: T?) {
         type.toContentValues(values, getColumnName(), value)
+    }
+
+
+    public fun toSQLString(value: T?): String {
+       return type.valueToString(value)
     }
 }

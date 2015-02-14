@@ -5,6 +5,7 @@ import android.database.Cursor
 import android.content.ContentValues
 import java.util.ArrayList
 import java.util.HashMap
+import android.util.Log
 
 /**
  * Dao class that provides query functionality
@@ -17,8 +18,12 @@ public class Dao<T>(val database: SQLiteDatabase, val table: Table<T>) {
         return database.insertWithOnConflict(table.tableName, null, values, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
-    fun delete() {
-        
+    fun update(item: T) {
+        save(item)
+    }
+
+    fun <K> deleteWhere(column: Column<K>, value: K): Int {
+        return database.delete(table.tableName, "${column.getColumnName()} = ?", array(value.toString()))
     }
 
 
@@ -64,8 +69,11 @@ public class Dao<T>(val database: SQLiteDatabase, val table: Table<T>) {
             return this
         }
 
-        fun <K> equals(column: Column<K>, value: Any): QueryBuilder {
-            getWhereMap().put("${column.getColumnName()} = ?", value.toString())
+        fun <K> equals(column: Column<K>, value: K): QueryBuilder {
+            val valueString = column.toSQLString(value)
+
+            Log.d("Dao", "equals ${column.getColumnName()} = $valueString")
+            getWhereMap().put("${column.getColumnName()} = ?", valueString)
 
             return this
         }
@@ -83,7 +91,6 @@ public class Dao<T>(val database: SQLiteDatabase, val table: Table<T>) {
                     if(orderList == null) null
                     else orderList!!.reduce { (computed, s) -> computed + "," }
 
-
             var (selection: String?, selectionArgs: Array<String>?) = fromWhereMap()
 
             val cursor = database.query(table.tableName, table.getColumnNames(), selection, selectionArgs, null, null, orderBy)
@@ -99,6 +106,7 @@ public class Dao<T>(val database: SQLiteDatabase, val table: Table<T>) {
             var selectionArgs = whereMap!!.values().copyToArray()
 
 
+            Log.d("Dao", "where selection ${selection}")
             return Pair(selection, selectionArgs)
         }
     }
